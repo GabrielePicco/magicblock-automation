@@ -11,7 +11,7 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  produce:
+  produce-from-twitter:
     runs-on: ubuntu-latest
     environment: alembik
     container:
@@ -27,5 +27,23 @@ jobs:
         USE_DEEP_LEARNING: true
     steps:
       - name: Produce
+        working-directory: /app
+        run: python -m alembik
+  consume-to-telegram:
+    needs: produce-from-twitter
+    runs-on: ubuntu-latest
+    environment: alembik
+    container:
+      image: ghcr.io/gabrielepicco/alembik/alembik-consumer
+      credentials:
+         username: ${{ github.actor }}
+         password: ${{ secrets.GHCR_TOKEN }}
+      env:
+        MONGO_HOST: ${{ secrets.MONGO_HOST }}
+        MONGO_DB: alembik
+        SOCIAL: telegram
+        ACCOUNT: twitter-Magicblock
+    steps:
+      - name: Consume static website
         working-directory: /app
         run: python -m alembik
